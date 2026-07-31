@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 
+import MapView from './MapView'
 import type { Charger, ChargerSourceCollection, CipSourceCollection, Project } from './types'
 
 const projectsUrl = `${import.meta.env.BASE_URL}data/cip_projects.json`
@@ -71,7 +72,22 @@ function App() {
     )
   }
 
-  return <p>{projects.length} projects · {chargers.length} chargers</p>
+  return (
+    <div className="app">
+      <div className="topbar">
+        <strong>CIP × EV charger synergy finder</strong>
+        <span>{projects.length} projects · {chargers.length} chargers</span>
+      </div>
+      <div className="main">
+        <aside className="sidebar">
+          <div className="status">Select a project to inspect matches.</div>
+        </aside>
+        <div className="map">
+          <MapView projects={projects} chargers={chargers} />
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export default App
