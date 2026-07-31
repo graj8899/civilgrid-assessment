@@ -7,18 +7,26 @@ import type { Charger, ChargerSourceCollection, CipSourceCollection, Project } f
 
 const projectsUrl = `${import.meta.env.BASE_URL}data/cip_projects.json`
 const chargersUrl = `${import.meta.env.BASE_URL}data/ev_chargers.json`
+const RADIUS_STOPS = [0, 250, 500, 1000]
 
 function App() {
   const [projects, setProjects] = useState<Project[]>([])
   const [chargers, setChargers] = useState<Charger[]>([])
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const [selectedId, setSelectedId] = useState<number | null>(null)
-  const [radiusMeters] = useState(0)
+  const [radiusIndex, setRadiusIndex] = useState<number>(() => RADIUS_STOPS.indexOf(500))
+  const radiusMeters = RADIUS_STOPS[radiusIndex] ?? 0
 
   const matches = useMemo(
     () => buildMatches(projects, chargers, radiusMeters),
     [projects, chargers, radiusMeters],
   )
+
+  const sortKey = 'chargerCount' as const
+  const sorted = useMemo(() => [...projects], [projects, matches, sortKey])
+
+  const selectedProject = projects.find((project) => project.properties.OBJECTID === selectedId) ?? null
+  const selectedMatch = selectedId != null ? matches.get(selectedId) ?? null : null
 
   useEffect(() => {
     let cancelled = false
@@ -86,11 +94,24 @@ function App() {
       <div className="topbar">
         <strong>CIP × EV charger synergy finder</strong>
         <span>{projects.length} projects · {chargers.length} chargers</span>
+        <label htmlFor="radius-slider" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span>Proximity radius</span>
+          <input
+            id="radius-slider"
+            type="range"
+            min="0"
+            max={RADIUS_STOPS.length - 1}
+            step="1"
+            value={radiusIndex}
+            onChange={(event) => setRadiusIndex(Number(event.target.value))}
+          />
+          <span>{radiusMeters === 0 ? 'footprint' : `${radiusMeters} m`}</span>
+        </label>
       </div>
       <div className="main">
         <aside className="sidebar">
           <ProjectList
-            projects={projects}
+            projects={sorted}
             matches={matches}
             selectedId={selectedId}
             radiusMeters={radiusMeters}
@@ -98,7 +119,14 @@ function App() {
           />
         </aside>
         <div className="map">
-          <MapView projects={projects} chargers={chargers} selectedId={selectedId} onSelect={setSelectedId} />
+          <MapView
+            projects={projects}
+            chargers={chargers}
+            selectedId={selectedId}
+            selectedProject={selectedProject}
+            selectedMatch={selectedMatch}
+            onSelect={setSelectedId}
+          />
         </div>
       </div>
     </div>

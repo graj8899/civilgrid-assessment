@@ -5,6 +5,7 @@ import {
   formatCost,
   formatDate,
   formatDistricts,
+  formatMatchSummary,
   formatPhase,
 } from './ProjectList'
 
@@ -46,9 +47,11 @@ describe('ProjectList formatters', () => {
     expect(formatCost(62700000)).toBe('$62.7M')
   })
 
-  it('formats council districts and phase summaries', () => {
+  it('formats council districts, phase summaries, and match counts', () => {
     expect(formatDistricts(' 1 ,2, 3 ')).toBe('1, 2, 3')
     expect(formatPhase(makeProject())).toBe('Design — 75%')
     expect(formatPhase(makeProject({ CurrentPhaseDescription: null, CurrentPhasePercentComplete: null }))).toBe('—')
+    expect(formatMatchSummary(2, 3, 500)).toBe('2 inside footprint · 3 within 500 m')
+    expect(formatMatchSummary(0, 0, 0)).toBe('No chargers matched')
   })
 })

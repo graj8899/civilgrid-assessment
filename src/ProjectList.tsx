@@ -65,6 +65,18 @@ export function formatPhase(project: Project): string {
   return '—'
 }
 
+export function formatMatchSummary(insideCount: number, nearbyCount: number, radiusMeters: number): string {
+  if (insideCount === 0 && nearbyCount === 0) {
+    return 'No chargers matched'
+  }
+
+  if (radiusMeters > 0) {
+    return `${insideCount} inside footprint · ${nearbyCount} within ${radiusMeters} m`
+  }
+
+  return `${insideCount} inside footprint`
+}
+
 function ProjectList({ projects, matches, selectedId, radiusMeters, onSelect }: ProjectListProps) {
   const withMatches = projects.filter((project) => {
     const match = matches.get(project.properties.OBJECTID)
@@ -113,8 +125,9 @@ function ProjectList({ projects, matches, selectedId, radiusMeters, onSelect }: 
       {selectedProject ? (
         <section className="detail" aria-live="polite">
           <div className="count" role="status">
-            <span className="inside">{insideCount} inside</span>
-            <span className="near">{nearbyCount} near</span>
+            <span className={insideCount === 0 && nearbyCount === 0 ? 'near' : 'inside'}>
+              {formatMatchSummary(insideCount, nearbyCount, radiusMeters)}
+            </span>
           </div>
 
           <h2>{selectedProject.properties.ProjectTitle}</h2>
