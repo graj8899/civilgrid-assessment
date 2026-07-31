@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import MapView from './MapView'
 import ProjectList from './ProjectList'
 import { buildMatches } from './spatial'
-import type { Charger, ChargerSourceCollection, CipSourceCollection, Project } from './types'
+import type { Charger, ChargerSourceCollection, CipSourceCollection, Project, SortKey } from './types'
 
 const projectsUrl = `${import.meta.env.BASE_URL}data/cip_projects.json`
 const chargersUrl = `${import.meta.env.BASE_URL}data/ev_chargers.json`
@@ -15,6 +15,7 @@ function App() {
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [radiusIndex, setRadiusIndex] = useState<number>(() => RADIUS_STOPS.indexOf(500))
+  const [sortKey, setSortKey] = useState<SortKey>('chargerCount')
   const radiusMeters = RADIUS_STOPS[radiusIndex] ?? 0
 
   const matches = useMemo(
@@ -22,8 +23,32 @@ function App() {
     [projects, chargers, radiusMeters],
   )
 
-  const sortKey = 'chargerCount' as const
-  const sorted = useMemo(() => [...projects], [projects, matches, sortKey])
+  const sorted = useMemo(() => {
+    const nextProjects = [...projects]
+
+    nextProjects.sort((left, right) => {
+      const leftMatch = matches.get(left.properties.OBJECTID)
+      const rightMatch = matches.get(right.properties.OBJECTID)
+      const leftTotal = (leftMatch?.inside.length ?? 0) + (leftMatch?.nearby.length ?? 0)
+      const rightTotal = (rightMatch?.inside.length ?? 0) + (rightMatch?.nearby.length ?? 0)
+
+      if (sortKey === 'chargerCount') {
+        return rightTotal - leftTotal
+      }
+
+      if (sortKey === 'constructionStart') {
+        const leftDate = left.properties.ConsStartDate ?? Number.POSITIVE_INFINITY
+        const rightDate = right.properties.ConsStartDate ?? Number.POSITIVE_INFINITY
+        return leftDate - rightDate
+      }
+
+      const leftCost = left.properties.ConstructionCost ?? Number.NEGATIVE_INFINITY
+      const rightCost = right.properties.ConstructionCost ?? Number.NEGATIVE_INFINITY
+      return rightCost - leftCost
+    })
+
+    return nextProjects
+  }, [projects, matches, sortKey])
 
   const selectedProject = projects.find((project) => project.properties.OBJECTID === selectedId) ?? null
   const selectedMatch = selectedId != null ? matches.get(selectedId) ?? null : null
@@ -106,6 +131,14 @@ function App() {
             onChange={(event) => setRadiusIndex(Number(event.target.value))}
           />
           <span>{radiusMeters === 0 ? 'footprint' : `${radiusMeters} m`}</span>
+        </label>
+        <label htmlFor="sort-select" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span>Sort</span>
+          <select id="sort-select" value={sortKey} onChange={(event) => setSortKey(event.target.value as SortKey)}>
+            <option value="chargerCount">charger count</option>
+            <option value="constructionStart">construction start</option>
+            <option value="constructionCost">construction cost</option>
+          </select>
         </label>
       </div>
       <div className="main">

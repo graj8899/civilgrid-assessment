@@ -145,6 +145,41 @@ body {
   color: var(--surface);
 }
 
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px 16px 16px;
+  border-top: 1px solid var(--line);
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.dot.inside {
+  background: var(--inside);
+}
+
+.dot.nearby {
+  background: var(--accent);
+}
+
+.dot.unmatched {
+  background: var(--ink-faint);
+}
+
 .detail {
   padding: 16px;
   border-top: 1px solid var(--line);

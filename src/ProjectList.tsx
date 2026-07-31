@@ -100,27 +100,33 @@ function ProjectList({ projects, matches, selectedId, radiusMeters, onSelect }: 
         </span>
       </div>
 
-      {projects.map((project) => {
-        const match = matches.get(project.properties.OBJECTID)
-        const count = (match?.inside.length ?? 0) + (match?.nearby.length ?? 0)
-        const isSelected = selectedId === project.properties.OBJECTID
+      {projects.length === 0 ? (
+        <div className="detail" role="status">
+          <p className="program">No projects are loaded yet.</p>
+        </div>
+      ) : (
+        projects.map((project) => {
+          const match = matches.get(project.properties.OBJECTID)
+          const count = (match?.inside.length ?? 0) + (match?.nearby.length ?? 0)
+          const isSelected = selectedId === project.properties.OBJECTID
 
-        return (
-          <button
-            key={project.properties.OBJECTID}
-            type="button"
-            className={`row${count > 0 ? ' has' : ''}`}
-            aria-current={isSelected ? 'true' : undefined}
-            onClick={() => onSelect(isSelected ? null : project.properties.OBJECTID)}
-          >
-            <span className={`chip${count > 0 ? ' has' : ''}`}>{count}</span>
-            <span className="row-body">
-              <span className="row-title">{project.properties.ProjectTitle}</span>
-              <span className="row-meta">{project.properties.ProgramName}</span>
-            </span>
-          </button>
-        )
-      })}
+          return (
+            <button
+              key={project.properties.OBJECTID}
+              type="button"
+              className={`row${count > 0 ? ' has' : ''}`}
+              aria-current={isSelected ? 'true' : undefined}
+              onClick={() => onSelect(isSelected ? null : project.properties.OBJECTID)}
+            >
+              <span className={`chip${count > 0 ? ' has' : ''}`}>{count}</span>
+              <span className="row-body">
+                <span className="row-title">{project.properties.ProjectTitle}</span>
+                <span className="row-meta">{project.properties.ProgramName}</span>
+              </span>
+            </button>
+          )
+        })
+      )}
 
       {selectedProject ? (
         <section className="detail" aria-live="polite">
@@ -164,7 +170,17 @@ function ProjectList({ projects, matches, selectedId, radiusMeters, onSelect }: 
             </div>
           </dl>
         </section>
-      ) : null}
+      ) : (
+        <div className="detail" role="status">
+          <p className="program">No project selected. Choose a project footprint to inspect its charger matches.</p>
+        </div>
+      )}
+
+      <div className="legend" role="note">
+        <span className="legend-item"><span className="dot inside" />inside footprint</span>
+        <span className="legend-item"><span className="dot nearby" />within radius</span>
+        <span className="legend-item"><span className="dot unmatched" />unmatched</span>
+      </div>
     </div>
   )
 }

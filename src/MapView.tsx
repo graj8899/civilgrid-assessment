@@ -116,6 +116,13 @@ function MapView({ projects, chargers, selectedId, selectedProject, selectedMatc
             center={[lat, lon]}
             radius={markerRadius}
             pathOptions={{ color: markerColor, fillColor: markerColor, fillOpacity: 1 }}
+            eventHandlers={{
+              mouseover: (event) => {
+                event.target.bindTooltip(`Charger ${charger.id} — no attribute data in the source file`, {
+                  sticky: true,
+                })
+              },
+            }}
           />
         )
       })}
