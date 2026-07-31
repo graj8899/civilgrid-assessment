@@ -1,6 +1,8 @@
-import { CircleMarker, GeoJSON, MapContainer, TileLayer } from 'react-leaflet'
+import { useEffect } from 'react'
+import { CircleMarker, GeoJSON, MapContainer, TileLayer, useMap } from 'react-leaflet'
 import type { FeatureCollection } from 'geojson'
 
+import { boundsOf } from './spatial'
 import type { Charger, Project, ProjectMatch } from './types'
 
 interface MapViewProps {
@@ -13,6 +15,30 @@ interface MapViewProps {
 }
 
 const center: [number, number] = [34.02, -118.35]
+
+function FitToSelection({ selectedProject }: { selectedProject: Project | null }) {
+  const map = useMap()
+
+  useEffect(() => {
+    if (!selectedProject) {
+      return
+    }
+
+    const [minLon, minLat, maxLon, maxLat] = boundsOf(selectedProject.geometry)
+    map.fitBounds(
+      [
+        [minLat, minLon],
+        [maxLat, maxLon],
+      ],
+      {
+        padding: [64, 64],
+        maxZoom: 16,
+      },
+    )
+  }, [map, selectedProject])
+
+  return null
+}
 
 function MapView({ projects, chargers, selectedId, selectedProject, selectedMatch, onSelect }: MapViewProps) {
   const projectFeatureCollection: FeatureCollection = {
@@ -39,6 +65,8 @@ function MapView({ projects, chargers, selectedId, selectedProject, selectedMatc
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
+
+      <FitToSelection selectedProject={selectedProject} />
 
       <GeoJSON
         key={`cip-${selectedId ?? 'none'}`}
