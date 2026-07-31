@@ -144,3 +144,70 @@ body {
   background: var(--inside);
   color: var(--surface);
 }
+
+.detail {
+  padding: 16px;
+  border-top: 1px solid var(--line);
+  background: var(--page);
+}
+
+.detail h2 {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+}
+
+.detail .program {
+  margin: 0 0 12px;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+
+.count {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.count .inside,
+.count .near {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.count .inside {
+  background: var(--accent-soft);
+  color: var(--inside);
+}
+
+.count .near {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink-soft);
+}
+
+dl.facts {
+  display: grid;
+  grid-template-columns: 118px 1fr;
+  gap: 8px 10px;
+  margin: 0;
+}
+
+dl.facts div {
+  display: contents;
+}
+
+dl.facts dt {
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+dl.facts dd {
+  margin: 0;
+  color: var(--ink);
+}
