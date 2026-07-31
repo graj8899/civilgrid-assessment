@@ -98,7 +98,7 @@ function App() {
           />
         </aside>
         <div className="map">
-          <MapView projects={projects} chargers={chargers} />
+          <MapView projects={projects} chargers={chargers} selectedId={selectedId} onSelect={setSelectedId} />
         </div>
       </div>
     </div>
