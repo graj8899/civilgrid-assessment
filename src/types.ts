@@ -47,6 +47,7 @@ export interface Charger {
 }
 
 export interface ProjectMatch {
+  /** Unique per feature/geometry and sourced from OBJECTID; PROJECTID can repeat across segments of one program. */
   projectId: number
   inside: number[]
   nearby: number[]

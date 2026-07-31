@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import MapView from './MapView'
+import ProjectList from './ProjectList'
+import { buildMatches } from './spatial'
 import type { Charger, ChargerSourceCollection, CipSourceCollection, Project } from './types'
 
 const projectsUrl = `${import.meta.env.BASE_URL}data/cip_projects.json`
@@ -10,6 +12,13 @@ function App() {
   const [projects, setProjects] = useState<Project[]>([])
   const [chargers, setChargers] = useState<Charger[]>([])
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+  const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [radiusMeters] = useState(0)
+
+  const matches = useMemo(
+    () => buildMatches(projects, chargers, radiusMeters),
+    [projects, chargers, radiusMeters],
+  )
 
   useEffect(() => {
     let cancelled = false
@@ -80,7 +89,13 @@ function App() {
       </div>
       <div className="main">
         <aside className="sidebar">
-          <div className="status">Select a project to inspect matches.</div>
+          <ProjectList
+            projects={projects}
+            matches={matches}
+            selectedId={selectedId}
+            radiusMeters={radiusMeters}
+            onSelect={setSelectedId}
+          />
         </aside>
         <div className="map">
           <MapView projects={projects} chargers={chargers} />

@@ -56,7 +56,7 @@ export function matchProject(
     .map((charger) => charger.id)
 
   return {
-    projectId: project.properties.PROJECTID,
+    projectId: project.properties.OBJECTID,
     inside,
     nearby,
     total: inside.length + nearby.length,
@@ -70,7 +70,7 @@ export function buildMatches(
   radiusMeters: number,
 ): Map<number, ProjectMatch> {
   return new Map(
-    projects.map((project) => [project.properties.PROJECTID, matchProject(project, chargers, radiusMeters)]),
+    projects.map((project) => [project.properties.OBJECTID, matchProject(project, chargers, radiusMeters)]),
   )
 }
 
