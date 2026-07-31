@@ -1,0 +1,78 @@
+@import 'leaflet/dist/leaflet.css';
+
+:root {
+  --ink: #1c1c1a;
+  --ink-soft: #63625d;
+  --ink-faint: #8f8e88;
+  --line: #e2e0d9;
+  --surface: #fff;
+  --page: #f7f6f2;
+  --accent: #185fa5;
+  --accent-soft: #e6f1fb;
+  --inside: #0f6e56;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--page);
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* min-height: 0 and an explicit height are required or the map collapses to zero height. */
+.main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.sidebar {
+  width: 380px;
+  flex: none;
+  overflow-y: auto;
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+}
+
+.map {
+  flex: 1;
+  min-width: 0;
+}
+
+.map .leaflet-container {
+  height: 100%;
+  width: 100%;
+}
+
+.topbar {
+  display: flex;
+  align-items: baseline;
+  gap: 24px;
+  padding: 12px 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 20px;
+  color: var(--ink-soft);
+}
