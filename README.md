@@ -1,6 +1,6 @@
 # CIP × EV charger synergy finder
 
-Live URL: TODO
+Live URL: https://civilgrid-assessment-gowtham.netlify.app
 
 ```bash
 npm i && npm run dev
@@ -27,7 +27,7 @@ What I cut
 - No URL state.
 - No filters.
 - No mobile layout.
-- No CI/E2E beyond the 14 unit tests.
+- No CI/E2E beyond the 15 unit tests.
 
 What's next
 - Get real charger attribute data, especially port count, power, and operator, so the app can rank chargers instead of only locating them.

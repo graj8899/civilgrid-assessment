@@ -137,7 +137,7 @@ describe('matchProject', () => {
     expect(result.nearby).not.toContain(104)
   })
 
-  it('is monotonic in radius and uses the project PROJECTID', () => {
+  it('is monotonic in radius and uses the project OBJECTID', () => {
     const project = makeProject(squareGeometry, 55)
     const radius0 = matchProject(project, makeChargers(), 0)
     const radius250 = matchProject(project, makeChargers(), 250)
@@ -150,7 +150,7 @@ describe('matchProject', () => {
 })
 
 describe('buildMatches', () => {
-  it('keys the map by PROJECTID and includes zero-match projects', () => {
+  it('keys the map by OBJECTID and includes zero-match projects', () => {
     const firstProject = makeProject(squareGeometry, 11)
     const secondProject = makeProject(
       {
@@ -174,6 +174,32 @@ describe('buildMatches', () => {
     expect(zeroMatch).toBeDefined()
     expect(zeroMatch!.inside).toEqual([])
     expect(zeroMatch!.nearby).toEqual([])
+  })
+
+  it('keeps projects with the same PROJECTID as separate entries when their OBJECTIDs differ', () => {
+    const firstProject = makeProject(squareGeometry, 201)
+    const secondProject = makeProject(
+      {
+        type: 'Polygon',
+        coordinates: [[
+          [-118.25, 34.01],
+          [-118.24, 34.01],
+          [-118.24, 34.02],
+          [-118.25, 34.02],
+          [-118.25, 34.01],
+        ]],
+      },
+      202,
+    )
+
+    firstProject.properties.PROJECTID = 99
+    secondProject.properties.PROJECTID = 99
+
+    const matches = buildMatches([firstProject, secondProject], makeChargers(), 250)
+
+    expect(matches.size).toBe(2)
+    expect(matches.has(201)).toBe(true)
+    expect(matches.has(202)).toBe(true)
   })
 
   it('returns an empty map for an empty project list', () => {
