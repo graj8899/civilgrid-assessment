@@ -1,3 +1,4 @@
+import ProjectDetail from './ProjectDetail'
 import type { Project, ProjectMatch } from './types'
 
 interface ProjectListProps {
@@ -6,75 +7,6 @@ interface ProjectListProps {
   selectedId: number | null
   radiusMeters: number
   onSelect: (projectId: number | null) => void
-}
-
-export function formatDate(epochMs: number | null): string {
-  if (epochMs == null) {
-    return '—'
-  }
-
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  }).format(epochMs)
-}
-
-export function formatCost(value: number | null): string {
-  if (value == null || value === 0) {
-    return '—'
-  }
-
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    notation: 'compact',
-    maximumFractionDigits: 1,
-  }).format(value)
-}
-
-export function formatDistricts(raw: string | null): string {
-  if (!raw) {
-    return '—'
-  }
-
-  const districts = raw
-    .split(',')
-    .map((district) => district.trim())
-    .filter(Boolean)
-
-  return districts.length > 0 ? districts.join(', ') : '—'
-}
-
-export function formatPhase(project: Project): string {
-  const phase = project.properties.CurrentPhaseDescription?.trim()
-  const percent = project.properties.CurrentPhasePercentComplete
-
-  if (phase && percent != null) {
-    return `${phase} — ${percent}%`
-  }
-
-  if (phase) {
-    return phase
-  }
-
-  if (percent != null) {
-    return `${percent}%`
-  }
-
-  return '—'
-}
-
-export function formatMatchSummary(insideCount: number, nearbyCount: number, radiusMeters: number): string {
-  if (insideCount === 0 && nearbyCount === 0) {
-    return 'No chargers matched'
-  }
-
-  if (radiusMeters > 0) {
-    return `${insideCount} inside footprint · ${nearbyCount} within ${radiusMeters} m`
-  }
-
-  return `${insideCount} inside footprint`
 }
 
 function ProjectList({ projects, matches, selectedId, radiusMeters, onSelect }: ProjectListProps) {
@@ -87,10 +19,6 @@ function ProjectList({ projects, matches, selectedId, radiusMeters, onSelect }: 
   const selectedMatch = selectedProject ? matches.get(selectedProject.properties.OBJECTID) : null
   const insideCount = selectedMatch?.inside.length ?? 0
   const nearbyCount = selectedMatch?.nearby.length ?? 0
-  const constructionWindow = [selectedProject?.properties.ConsStartDate ?? null, selectedProject?.properties.ConsEndDate ?? null]
-    .map((value) => formatDate(value))
-    .filter((value) => value !== '—')
-    .join(' – ')
 
   return (
     <div>
@@ -129,47 +57,12 @@ function ProjectList({ projects, matches, selectedId, radiusMeters, onSelect }: 
       )}
 
       {selectedProject ? (
-        <section className="detail" aria-live="polite">
-          <div className="count" role="status">
-            <span className={insideCount === 0 && nearbyCount === 0 ? 'near' : 'inside'}>
-              {formatMatchSummary(insideCount, nearbyCount, radiusMeters)}
-            </span>
-          </div>
-
-          <h2>{selectedProject.properties.ProjectTitle}</h2>
-          <p className="program">{selectedProject.properties.ProgramName}</p>
-
-          <dl className="facts">
-            <div>
-              <dt>Phase</dt>
-              <dd>{formatPhase(selectedProject)}</dd>
-            </div>
-            <div>
-              <dt>Construction window</dt>
-              <dd>{constructionWindow || '—'}</dd>
-            </div>
-            <div>
-              <dt>Cost</dt>
-              <dd>{formatCost(selectedProject.properties.ConstructionCost)}</dd>
-            </div>
-            <div>
-              <dt>Council districts</dt>
-              <dd>{formatDistricts(selectedProject.properties.CouncilDistrict)}</dd>
-            </div>
-            <div>
-              <dt>PM</dt>
-              <dd>
-                {selectedProject.properties.PM_Name && selectedProject.properties.PM_EMail ? (
-                  <a href={`mailto:${selectedProject.properties.PM_EMail}`}>
-                    {selectedProject.properties.PM_Name}
-                  </a>
-                ) : (
-                  '—'
-                )}
-              </dd>
-            </div>
-          </dl>
-        </section>
+        <ProjectDetail
+          selectedProject={selectedProject}
+          insideCount={insideCount}
+          nearbyCount={nearbyCount}
+          radiusMeters={radiusMeters}
+        />
       ) : (
         <div className="detail" role="status">
           <p className="program">No project selected. Choose a project footprint to inspect its charger matches.</p>

@@ -7,7 +7,7 @@ import {
   formatDistricts,
   formatMatchSummary,
   formatPhase,
-} from './ProjectList'
+} from './formatters'
 
 const makeProject = (overrides: Partial<Project['properties']> = {}): Project => ({
   type: 'Feature',
