@@ -57,13 +57,17 @@ export function formatPhase(project: Project): string {
   return '—'
 }
 
+export function formatRadiusLabel(radiusMeters: number): string {
+  return radiusMeters > 0 ? `within ${radiusMeters} m` : 'inside'
+}
+
 export function formatMatchSummary(insideCount: number, nearbyCount: number, radiusMeters: number): string {
   if (insideCount === 0 && nearbyCount === 0) {
     return 'No chargers matched'
   }
 
   if (radiusMeters > 0) {
-    return `${insideCount} inside footprint · ${nearbyCount} within ${radiusMeters} m`
+    return `${insideCount} inside footprint · ${nearbyCount} ${formatRadiusLabel(radiusMeters)}`
   }
 
   return `${insideCount} inside footprint`

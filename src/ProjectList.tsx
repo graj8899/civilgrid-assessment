@@ -1,4 +1,5 @@
 import ProjectDetail from './ProjectDetail'
+import { formatRadiusLabel } from './formatters'
 import type { Project, ProjectMatch } from './types'
 
 interface ProjectListProps {
@@ -24,7 +25,7 @@ function ProjectList({ projects, matches, selectedId, radiusMeters, onSelect }: 
     <div>
       <div className="list-head">
         <span>
-          {withMatches} of {projects.length} projects have a charger {radiusMeters > 0 ? `within ${radiusMeters} m` : 'inside'}
+          {withMatches} of {projects.length} projects have a charger {formatRadiusLabel(radiusMeters)}
         </span>
       </div>
 
