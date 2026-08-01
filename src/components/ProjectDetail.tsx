@@ -1,5 +1,5 @@
-import { formatCost, formatDate, formatDistricts, formatPhase, formatMatchSummary } from './formatters'
-import type { Project } from './types'
+import { formatCost, formatDate, formatDistricts, formatPhase, formatMatchSummary } from '../lib/formatters'
+import type { Project } from '../lib/types'
 
 interface ProjectDetailProps {
   selectedProject: Project | null

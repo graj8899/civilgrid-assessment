@@ -2,9 +2,9 @@ import { useEffect } from 'react'
 import { CircleMarker, GeoJSON, MapContainer, TileLayer, useMap } from 'react-leaflet'
 import type { FeatureCollection } from 'geojson'
 
-import { boundsOf } from './spatial'
-import type { Charger, Project, ProjectMatch } from './types'
-import { COLORS } from './theme'
+import { boundsOf } from '../lib/spatial'
+import type { Charger, Project, ProjectMatch } from '../lib/types'
+import { COLORS } from '../lib/theme'
 
 interface MapViewProps {
   projects: Project[]

@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import MapView from './MapView'
-import ProjectList from './ProjectList'
-import { buildMatches } from './spatial'
-import type { Charger, ChargerSourceCollection, CipSourceCollection, Project, SortKey } from './types'
+import MapView from './components/MapView'
+import ProjectList from './components/ProjectList'
+import { buildMatches } from './lib/spatial'
+import type { Charger, ChargerSourceCollection, CipSourceCollection, Project, SortKey } from './lib/types'
 
 const projectsUrl = `${import.meta.env.BASE_URL}data/cip_projects.json`
 const chargersUrl = `${import.meta.env.BASE_URL}data/ev_chargers.json`

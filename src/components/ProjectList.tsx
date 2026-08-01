@@ -1,6 +1,6 @@
 import ProjectDetail from './ProjectDetail'
-import { formatRadiusLabel } from './formatters'
-import type { Project, ProjectMatch } from './types'
+import { formatRadiusLabel } from '../lib/formatters'
+import type { Project, ProjectMatch } from '../lib/types'
 
 interface ProjectListProps {
   projects: Project[]
