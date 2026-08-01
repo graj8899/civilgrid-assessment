@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
-import type { Project } from './types'
+import type { Project } from '../lib/types'
 import {
   formatCost,
   formatDate,
   formatDistricts,
   formatMatchSummary,
   formatPhase,
-} from './ProjectList'
+} from '../lib/formatters'
 
 const makeProject = (overrides: Partial<Project['properties']> = {}): Project => ({
   type: 'Feature',
