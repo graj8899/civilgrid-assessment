@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import MapView from './components/MapView'
 import ProjectList from './components/ProjectList'
 import { buildMatches } from './lib/spatial'
+import { normalizeChargers, normalizeProjects } from './lib/normalize'
 import type { Charger, ChargerSourceCollection, CipSourceCollection, Project, SortKey } from './lib/types'
 
 const projectsUrl = `${import.meta.env.BASE_URL}data/cip_projects.json`
@@ -76,14 +77,8 @@ function App() {
           return
         }
 
-        const normalizedProjects = projectsData.features as Project[]
-        const normalizedChargers = chargersData.features.map((feature) => {
-          const [lon, lat] = feature.geometry.coordinates as [number, number]
-          return {
-            id: feature.properties.OBJECTID,
-            position: [lon, lat] as [number, number],
-          }
-        })
+        const normalizedProjects = normalizeProjects(projectsData)
+        const normalizedChargers = normalizeChargers(chargersData)
 
         setProjects(normalizedProjects)
         setChargers(normalizedChargers)
