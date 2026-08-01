@@ -40,12 +40,41 @@ function FitToSelection({ selectedProject }: { selectedProject: Project | null }
   return null
 }
 
-function MapView({ projects, chargers, selectedId, selectedProject, selectedMatch, onSelect }: MapViewProps) {
+function ProjectLayer({ projects, selectedId, onSelect }: { projects: Project[]; selectedId: number | null; onSelect: (projectId: number | null) => void }) {
   const projectFeatureCollection: FeatureCollection = {
     type: 'FeatureCollection' as const,
     features: projects,
   }
 
+  return (
+    <GeoJSON
+      key={`cip-${selectedId ?? 'none'}`}
+      data={projectFeatureCollection}
+      style={(feature) => {
+        const isSelected = feature?.properties?.OBJECTID === selectedId
+        return {
+          color: isSelected ? '#185fa5' : '#8f8e88',
+          weight: isSelected ? 2 : 1,
+          fillColor: isSelected ? '#e6f1fb' : '#e2e0d9',
+          fillOpacity: isSelected ? 0.75 : 0.55,
+        }
+      }}
+      onEachFeature={(feature, layer) => {
+        const objectId = feature.properties?.OBJECTID
+        if (typeof objectId === 'number') {
+          layer.bindTooltip(feature.properties?.ProjectTitle ?? 'Project', {
+            sticky: true,
+          })
+          layer.on('click', () => {
+            onSelect(objectId)
+          })
+        }
+      }}
+    />
+  )
+}
+
+function BufferRingLayer({ selectedMatch, selectedProjectObjectId }: { selectedMatch: ProjectMatch | null; selectedProjectObjectId: number | null }) {
   const selectedBufferFeatureCollection: FeatureCollection | null = selectedMatch?.bufferGeometry
     ? {
         type: 'FeatureCollection' as const,
@@ -59,49 +88,23 @@ function MapView({ projects, chargers, selectedId, selectedProject, selectedMatc
       }
     : null
 
+  if (!selectedBufferFeatureCollection) {
+    return null
+  }
+
   return (
-    <MapContainer center={center} zoom={10} scrollWheelZoom>
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
+    <GeoJSON
+      key={`buffer-${selectedProjectObjectId ?? 'none'}`}
+      data={selectedBufferFeatureCollection}
+      style={{ color: '#0f6e56', weight: 2, fill: false, dashArray: '5 5' }}
+      interactive={false}
+    />
+  )
+}
 
-      <FitToSelection selectedProject={selectedProject} />
-
-      <GeoJSON
-        key={`cip-${selectedId ?? 'none'}`}
-        data={projectFeatureCollection}
-        style={(feature) => {
-          const isSelected = feature?.properties?.OBJECTID === selectedId
-          return {
-            color: isSelected ? '#185fa5' : '#8f8e88',
-            weight: isSelected ? 2 : 1,
-            fillColor: isSelected ? '#e6f1fb' : '#e2e0d9',
-            fillOpacity: isSelected ? 0.75 : 0.55,
-          }
-        }}
-        onEachFeature={(feature, layer) => {
-          const objectId = feature.properties?.OBJECTID
-          if (typeof objectId === 'number') {
-            layer.bindTooltip(feature.properties?.ProjectTitle ?? 'Project', {
-              sticky: true,
-            })
-            layer.on('click', () => {
-              onSelect(objectId)
-            })
-          }
-        }}
-      />
-
-      {selectedBufferFeatureCollection ? (
-        <GeoJSON
-          key={`buffer-${selectedProject?.properties.OBJECTID ?? 'none'}`}
-          data={selectedBufferFeatureCollection}
-          style={{ color: '#0f6e56', weight: 2, fill: false, dashArray: '5 5' }}
-          interactive={false}
-        />
-      ) : null}
-
+function ChargerLayer({ chargers, selectedMatch }: { chargers: Charger[]; selectedMatch: ProjectMatch | null }) {
+  return (
+    <>
       {chargers.map((charger) => {
         // Leaflet expects [lat, lng], while GeoJSON uses [lon, lat].
         const [lon, lat] = charger.position
@@ -126,6 +129,22 @@ function MapView({ projects, chargers, selectedId, selectedProject, selectedMatc
           />
         )
       })}
+    </>
+  )
+}
+
+function MapView({ projects, chargers, selectedId, selectedProject, selectedMatch, onSelect }: MapViewProps) {
+  return (
+    <MapContainer center={center} zoom={10} scrollWheelZoom>
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+
+      <FitToSelection selectedProject={selectedProject} />
+      <ProjectLayer projects={projects} selectedId={selectedId} onSelect={onSelect} />
+      <BufferRingLayer selectedMatch={selectedMatch} selectedProjectObjectId={selectedProject?.properties.OBJECTID ?? null} />
+      <ChargerLayer chargers={chargers} selectedMatch={selectedMatch} />
     </MapContainer>
   )
 }
