@@ -4,6 +4,7 @@ import type { FeatureCollection } from 'geojson'
 
 import { boundsOf } from './spatial'
 import type { Charger, Project, ProjectMatch } from './types'
+import { COLORS } from './theme'
 
 interface MapViewProps {
   projects: Project[]
@@ -53,9 +54,9 @@ function ProjectLayer({ projects, selectedId, onSelect }: { projects: Project[];
       style={(feature) => {
         const isSelected = feature?.properties?.OBJECTID === selectedId
         return {
-          color: isSelected ? '#185fa5' : '#8f8e88',
+          color: isSelected ? COLORS.accent : COLORS.inkFaint,
           weight: isSelected ? 2 : 1,
-          fillColor: isSelected ? '#e6f1fb' : '#e2e0d9',
+          fillColor: isSelected ? COLORS.accentSoft : COLORS.line,
           fillOpacity: isSelected ? 0.75 : 0.55,
         }
       }}
@@ -96,7 +97,7 @@ function BufferRingLayer({ selectedMatch, selectedProjectObjectId }: { selectedM
     <GeoJSON
       key={`buffer-${selectedProjectObjectId ?? 'none'}`}
       data={selectedBufferFeatureCollection}
-      style={{ color: '#0f6e56', weight: 2, fill: false, dashArray: '5 5' }}
+      style={{ color: COLORS.inside, weight: 2, fill: false, dashArray: '5 5' }}
       interactive={false}
     />
   )
@@ -110,7 +111,7 @@ function ChargerLayer({ chargers, selectedMatch }: { chargers: Charger[]; select
         const [lon, lat] = charger.position
         const isInside = selectedMatch?.inside.includes(charger.id) ?? false
         const isNearby = selectedMatch?.nearby.includes(charger.id) ?? false
-        const markerColor = isInside ? '#0f6e56' : isNearby ? '#185fa5' : '#63625d'
+        const markerColor = isInside ? COLORS.inside : isNearby ? COLORS.accent : COLORS.inkSoft
         const markerRadius = isInside || isNearby ? 6 : 3
 
         return (
