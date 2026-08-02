@@ -27,7 +27,7 @@ What I cut
 - No URL state.
 - No filters.
 - No mobile layout.
-- No CI/E2E beyond the 15 unit tests.
+- No CI/E2E beyond the 26 unit tests.
 
 What's next
 - Get real charger attribute data, especially port count, power, and operator, so the app can rank chargers instead of only locating them.
