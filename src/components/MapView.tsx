@@ -4,7 +4,8 @@ import type { FeatureCollection } from 'geojson'
 
 import { boundsOf } from '../lib/spatial'
 import type { Charger, Project, ProjectMatch } from '../lib/types'
-import { COLORS } from '../lib/theme'
+import { COLORS, MAP_CENTER, BUFFER_RING_STYLE, CHARGER_TOOLTIP_LABEL } from '../lib/theme'
+import { getChargerStatus } from '../lib/chargerStatus'
 
 interface MapViewProps {
   projects: Project[]
@@ -15,7 +16,7 @@ interface MapViewProps {
   onSelect: (projectId: number | null) => void
 }
 
-const center: [number, number] = [34.02, -118.35]
+const center: [number, number] = MAP_CENTER
 
 function FitToSelection({ selectedProject }: { selectedProject: Project | null }) {
   const map = useMap()
@@ -97,7 +98,7 @@ function BufferRingLayer({ selectedMatch, selectedProjectObjectId }: { selectedM
     <GeoJSON
       key={`buffer-${selectedProjectObjectId ?? 'none'}`}
       data={selectedBufferFeatureCollection}
-      style={{ color: COLORS.inside, weight: 2, fill: false, dashArray: '5 5' }}
+      style={BUFFER_RING_STYLE}
       interactive={false}
     />
   )
@@ -109,10 +110,9 @@ function ChargerLayer({ chargers, selectedMatch }: { chargers: Charger[]; select
       {chargers.map((charger) => {
         // Leaflet expects [lat, lng], while GeoJSON uses [lon, lat].
         const [lon, lat] = charger.position
-        const isInside = selectedMatch?.inside.includes(charger.id) ?? false
-        const isNearby = selectedMatch?.nearby.includes(charger.id) ?? false
-        const markerColor = isInside ? COLORS.inside : isNearby ? COLORS.accent : COLORS.inkSoft
-        const markerRadius = isInside || isNearby ? 6 : 3
+        const status = getChargerStatus(charger.id, selectedMatch)
+        const markerColor = status === 'inside' ? COLORS.inside : status === 'nearby' ? COLORS.accent : COLORS.inkSoft
+        const markerRadius = status === 'unmatched' ? 3 : 6
 
         return (
           <CircleMarker
@@ -122,7 +122,7 @@ function ChargerLayer({ chargers, selectedMatch }: { chargers: Charger[]; select
             pathOptions={{ color: markerColor, fillColor: markerColor, fillOpacity: 1 }}
             eventHandlers={{
               mouseover: (event) => {
-                event.target.bindTooltip(`Charger ${charger.id} — no attribute data in the source file`, {
+                event.target.bindTooltip(CHARGER_TOOLTIP_LABEL(charger.id), {
                   sticky: true,
                 })
               },

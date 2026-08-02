@@ -44,7 +44,7 @@ Verified against both files. These four facts drove most of the design.
 - **Dates are epoch milliseconds.** `StartDate`/`EndDate` duplicate `ConsStartDate`/`ConsEndDate`; `LastVisited` is an inconsistent `"MM/DD/YYYY"` string. Use one pair, ignore the rest.
 - **PROJECTID is not unique per feature.** The 773 features share only 216 unique PROJECTIDs, so OBJECTID (verified unique across all 773) is used as the real per-feature identifier throughout the app, including in `spatial.ts` and the map selection logic.
 
-Neither file has a `crs` member, so coordinates are WGS84 lon/lat. Both files are clean — no malformed features, no null geometries — which is why §4 has no validation layer.
+Neither file has a `crs` member, so coordinates are WGS84 lon/lat. Both files are clean — no malformed features, no null geometries. That cleanliness is still true today, but `normalize.ts` (§4, §11) was added anyway, as defense at the fetch boundary against whatever a future live feed might send, not because these two files need it.
 
 **What to request from the data owner**, and the difference between a browsing tool and a decision tool: port count, connector type, power rating (L2 vs DCFC), operator, install date, utilisation. Without these you can locate a charger but not rank it as an upgrade candidate.
 
@@ -75,12 +75,12 @@ Neither file has a `crs` member, so coordinates are WGS84 lon/lat. Both files ar
 - *TanStack Query* — for two files that never change you would set `staleTime: Infinity` and disable refetch-on-focus, switching off every feature that justified installing it.
 - *Zustand / Redux* — one `selectedProjectId` in a three-level tree.
 - *Tailwind* — a config file, a PostCSS step and a class vocabulary to buy styling for one screen.
-- *A source → domain normalisation layer* — mapping 39 source keys into a clean model is correct with two data sources. There is one, and it is a static file. `Project` **is** the GeoJSON feature; components read `properties.ProjectTitle` directly.
+- *A source → domain normalisation layer* — mapping 39 source keys into a separate clean model is correct with two data sources. There is one, and it is a static file. `Project` **is** the GeoJSON feature; components read `properties.ProjectTitle` directly. (`normalize.ts`, added later, is boundary validation only — it checks shape and throws on malformed input, it doesn't restructure fields or remap keys.)
 - *Env vars, CI, Playwright, skip-and-log validation* — nothing to configure, nothing malformed, one route.
 
 ## 5. Files
 
-Two folders. Flat `src/` is deliberate — nine files do not need a taxonomy, and `hooks/` wrapping a single fetch reads as abstraction for its own sake.
+Two folders. The current structure is intentionally split between the app shell and focused modules.
 
 ```
 civilgrid-cip-ev/
@@ -88,16 +88,26 @@ civilgrid-cip-ev/
 │   ├── cip_projects.json          copied from the assessment repo
 │   └── ev_chargers.json
 ├── src/
-│   ├── main.tsx                   Vite entry
 │   ├── App.tsx                    state, loading, layout, controls
-│   ├── MapView.tsx                react-leaflet layers
-│   ├── ProjectList.tsx            sortable list + detail panel + format helpers
-│   ├── ProjectList.test.ts
-│   ├── spatial.ts                 pure, the only tested module
-│   ├── spatial.test.ts
-│   ├── types.ts
+│   ├── main.tsx                   Vite entry
 │   ├── index.css
-│   └── vite-env.d.ts
+│   ├── vite-env.d.ts
+│   ├── components/
+│   │   ├── MapView.tsx            react-leaflet layers
+│   │   ├── Topbar.tsx            radius and sort controls
+│   │   ├── ProjectList.tsx       sortable list
+│   │   └── ProjectDetail.tsx     selected project detail panel
+│   ├── lib/
+│   │   ├── spatial.ts             pure spatial logic
+│   │   ├── normalize.ts          runtime JSON normalization
+│   │   ├── chargerStatus.ts      per-charger status helper
+│   │   ├── formatters.ts         display formatting helpers
+│   │   ├── theme.ts              shared map and UI colors/constants
+│   │   ├── types.ts              shared data and match types
+│   │   ├── spatial.test.ts       spatial logic tests
+│   │   ├── normalize.test.ts     normalization tests
+│   │   ├── chargerStatus.test.ts status helper tests
+│   │   └── ProjectList.test.ts   list formatting tests
 ├── index.html
 ├── package.json
 ├── tsconfig.json
@@ -208,20 +218,28 @@ Connect Netlify on the *first* commit, not the last. A broken deploy discovered 
 
 ## 11. Tests
 
-One file, `spatial.test.ts`. Hand-built geometry, no fixtures lifted from the real data. **12 tests, no DOM.**
+Four files, Vitest, `environment: 'node'`. **26 tests, no DOM.**
+
+`spatial.test.ts` — hand-built geometry, no fixtures lifted from the real data. **13 tests.**
 
 | Group | Covers |
 |---|---|
 | `chargersInGeometry` | inside · outside · returns ids not indices · empty input · **point in the second polygon of a MultiPolygon** |
 | `bufferGeometry` | null at radius 0 · null at negative radius · point ~100 m out falls inside a 250 m buffer · point ~900 m out does not · bbox grows in all four directions |
 | `matchProject` | strict containment at radius 0 · ~100 m point lands in `nearby` not `inside` · buckets disjoint · `total` is the sum · 900 m excluded at 250 m · remote charger never matches · buffer present when radius > 0 · monotonic in radius · `projectId` is `OBJECTID` |
-| `buildMatches` | keyed by `OBJECTID` · includes zero-match projects so the list still renders them · each project scoped to its own chargers · empty project list |
+| `buildMatches` | keyed by `OBJECTID` · includes zero-match projects so the list still renders them · same `PROJECTID` with different `OBJECTID`s stay separate entries · empty project list |
 | `boundsOf` | `[minLon, minLat, maxLon, maxLat]` order · spans every polygon of a MultiPolygon |
 
 Two fixture decisions worth preserving if these get rewritten:
 
 - **Wide distance margins**, because of the projection caveat in §7. The near charger sits ~100 m outside the footprint and the far one ~900 m, both well clear of the 250 m threshold in either direction. A point 240 m from the edge tested against a 250 m buffer passes or fails by Turf minor version.
 - **The MultiPolygon case earns its keep** even though it passes trivially with `booleanPointInPolygon`. It catches the hand-rolled ring walk, which is the tempting optimisation and would silently break several of the 773 real projects.
+
+`normalize.test.ts` — **7 tests.** Validates that `normalizeProjects`/`normalizeChargers` accept well-formed features and throw on the malformed inputs a live feed could plausibly send: non-array `features`, a missing or non-numeric `OBJECTID`, an invalid geometry type, and malformed or non-numeric point coordinates.
+
+`chargerStatus.test.ts` — **4 tests.** `getChargerStatus` returns `inside` / `nearby` / `unmatched` against a fixed `ProjectMatch`, and falls back to `unmatched` for a `null` match (no project selected).
+
+`ProjectList.test.ts` — **2 tests.** Despite the filename, this exercises the formatting helpers in `formatters.ts` (`formatDate`, `formatCost`, `formatDistricts`, `formatPhase`, `formatMatchSummary`), not the `ProjectList` component — worth knowing since the name suggests otherwise. Covers date/cost fallbacks and formatting, district string cleanup, phase summary construction, and the dual-count match summary string.
 
 ## 12. Not built, and when it would matter
 
@@ -234,7 +252,7 @@ Two fixture decisions worth preserving if these get rewritten:
 | URL / shareable state | ~20 min of a 180 min budget | Immediately — a manager will want to send a colleague a link |
 | Filters (program, district, date range) | Not asked for; sorting by charger count already answers the question | A second screen, or many more projects |
 | Mobile layout | Desk-bound planning workflow | Field inspection use case |
-| Validation / skip-and-log | Both source files are clean | Data starts arriving from a live feed |
+| Skip-and-log recovery | `normalize.ts` throws on the first malformed feature rather than skipping it and rendering the rest | A live feed where one bad feature shouldn't take down the whole map |
 | CI, E2E | One route, one tested module | More than one contributor |
 
 ## 13. Talking points
