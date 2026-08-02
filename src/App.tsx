@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 
 import MapView from './components/MapView'
 import ProjectList from './components/ProjectList'
+import Topbar from './components/Topbar'
 import { buildMatches } from './lib/spatial'
 import { normalizeChargers, normalizeProjects } from './lib/normalize'
 import type { Charger, ChargerSourceCollection, CipSourceCollection, Project, SortKey } from './lib/types'
@@ -111,31 +112,16 @@ function App() {
 
   return (
     <div className="app">
-      <div className="topbar">
-        <strong>CIP × EV charger synergy finder</strong>
-        <span>{projects.length} projects · {chargers.length} chargers</span>
-        <label htmlFor="radius-slider" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span>Proximity radius</span>
-          <input
-            id="radius-slider"
-            type="range"
-            min="0"
-            max={RADIUS_STOPS.length - 1}
-            step="1"
-            value={radiusIndex}
-            onChange={(event) => setRadiusIndex(Number(event.target.value))}
-          />
-          <span>{radiusMeters === 0 ? 'footprint' : `${radiusMeters} m`}</span>
-        </label>
-        <label htmlFor="sort-select" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span>Sort</span>
-          <select id="sort-select" value={sortKey} onChange={(event) => setSortKey(event.target.value as SortKey)}>
-            <option value="chargerCount">charger count</option>
-            <option value="constructionStart">construction start</option>
-            <option value="constructionCost">construction cost</option>
-          </select>
-        </label>
-      </div>
+      <Topbar
+        projectCount={projects.length}
+        chargerCount={chargers.length}
+        radiusIndex={radiusIndex}
+        radiusMeters={radiusMeters}
+        radiusStops={RADIUS_STOPS}
+        sortKey={sortKey}
+        onRadiusChange={setRadiusIndex}
+        onSortChange={setSortKey}
+      />
       <div className="main">
         <aside className="sidebar">
           <ProjectList
