@@ -147,7 +147,7 @@ body {
 }
 
 .chip.has {
-  background: var(--inside);
+  background: var(--accent);
   color: var(--surface);
 }
 
